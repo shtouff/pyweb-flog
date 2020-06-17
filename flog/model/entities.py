@@ -12,6 +12,10 @@ class Post(db.Model):
     def __repr__(self):
         return f'<Post ({self.id}): {self.title[0:50]}>'
 
+    @classmethod
+    def testing_create(cls):
+        return Post(title='foo', author='bar', body='foo.bar.baz')
+
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -24,3 +28,7 @@ class Comment(db.Model):
 
     def __repr__(self):
         return f'<Comment ({self.id}): {self.title[0:50]}>'
+
+    @classmethod
+    def testing_create(cls):
+        return Comment(title='foo', author='bar', body='baz.bar.foo')

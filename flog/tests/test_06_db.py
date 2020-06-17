@@ -31,9 +31,9 @@ class Tests:
         assert ents.Comment.query.count() == 1
         assert ents.Comment.query.first() is comment
 
-    @pytest.mark.skip(reason='need to prep state')
+    # @pytest.mark.skip(reason='need to prep state')
     def test_post(self, db):
-        post = ents.Post(title='foo', author='bar', body='baz')
+        post = ents.Post.testing_create()
         db.session.add(post)
         db.session.commit()
         assert ents.Post.query.count() == 1
