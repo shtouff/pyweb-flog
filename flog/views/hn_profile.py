@@ -6,13 +6,14 @@ ident = 'hn-profile'
 bp = Blueprint(ident, __name__)
 
 
+def hn_process_profile(profile):
+    return len(profile['submitted']), profile['karma']
+
+
 def hn_fetch_profile(username):
-    return  # this will return a dictionary
-
-
-def hn_process_profile(profile_data):
-    # resp_data will be a dictionary
-    return  # this could return a string or two pieces of data
+    url = f'https://hacker-news.firebaseio.com/v0/user/{username}.json'
+    profile = requests.get(url, timeout=2.0).json()
+    return profile
 
 
 @bp.route(f'/{ident}', methods=('GET', 'POST'))
@@ -21,9 +22,10 @@ def hn_profile():
         return render_template('hn-profile.html')
 
     username = request.form['username']
-    url = f'https://hacker-news.firebaseio.com/v0/user/{username}.json'
-    profile = requests.get(url, timeout=2.0).json()
-    subcount = len(profile['submitted'])
+    profile = hn_fetch_profile(username)
+    subcount, karma = hn_process_profile(profile)
 
     return f'HackerNews user {username} has {subcount} submissions and' \
-        f' {profile["karma"]} karma.'
+        f' {karma} karma.'
+
+

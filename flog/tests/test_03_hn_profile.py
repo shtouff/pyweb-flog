@@ -28,6 +28,24 @@
     [patch]: https://docs.python.org/3/library/unittest.mock.html#unittest.mock.patch
     [responses]: https://github.com/getsentry/responses
 """
+from unittest.mock import patch
+
+import pytest
+import responses
+
+from flog.views.hn_profile import hn_fetch_profile, hn_process_profile
+
+
+@pytest.fixture
+def profile():
+    return {
+        "karma": 42,
+        "submitted": [
+            'un',
+            'deux',
+            'trois',
+        ]
+    }
 
 
 class Tests:
@@ -36,7 +54,27 @@ class Tests:
         assert resp.status_code == 200
         assert b'Please enter a Hacker News username:' in resp.data
 
-    def test_hn_post(self, web):
+    @patch('flog.views.hn_profile.hn_fetch_profile')
+    def test_hn_post(self, mock, web, profile):
+        mock.return_value = profile
         resp = web.post('/hn-profile', data={'username': 'rsyring'})
         assert resp.status_code == 200
-        assert b'HackerNews user rsyring has 102 submissions and 404 karma.' in resp.data
+        assert b'HackerNews user rsyring has 3 submissions and 42 karma.' in resp.data
+
+    @responses.activate
+    def test_hn_fetch_profile(self, profile):
+        username = "rsysring"
+        responses.add(
+            responses.GET,
+            f'https://hacker-news.firebaseio.com/v0/user/{username}.json',
+            json=profile, status=200
+        )
+
+        fetched_profile = hn_fetch_profile(username)
+        assert "karma" in fetched_profile
+        assert "submitted" in fetched_profile
+
+    def test_hn_process_profile(self, profile):
+        subcount, karma = hn_process_profile(profile)
+        assert subcount == 3
+        assert karma == 42
