@@ -1,19 +1,10 @@
 from flask import Blueprint, request, render_template
-import requests
+
+from flog.libs.hackernews import hn_process_profile, hn_fetch_profile
 
 ident = 'hn-profile'
 
 bp = Blueprint(ident, __name__)
-
-
-def hn_process_profile(profile):
-    return len(profile['submitted']), profile['karma']
-
-
-def hn_fetch_profile(username):
-    url = f'https://hacker-news.firebaseio.com/v0/user/{username}.json'
-    profile = requests.get(url, timeout=2.0).json()
-    return profile
 
 
 @bp.route(f'/{ident}', methods=('GET', 'POST'))

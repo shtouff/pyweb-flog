@@ -33,7 +33,7 @@ from unittest.mock import patch
 import pytest
 import responses
 
-from flog.views.hn_profile import hn_fetch_profile, hn_process_profile
+from flog.libs.hackernews import hn_process_profile, hn_fetch_profile
 
 
 @pytest.fixture
@@ -78,3 +78,7 @@ class Tests:
         subcount, karma = hn_process_profile(profile)
         assert subcount == 3
         assert karma == 42
+
+
+    def test_w(self):
+        app = TestApp()
