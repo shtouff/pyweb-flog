@@ -1,4 +1,5 @@
 import pytest
+from webtest import TestApp
 
 import flog.app
 import flog.ext
@@ -29,3 +30,20 @@ def db(app):
 @pytest.fixture()
 def web(app):
     return app.test_client()
+
+
+@pytest.fixture()
+def wt(app):
+    return TestApp(app)
+
+
+@pytest.fixture()
+def profile():
+    return {
+        "karma": 123,
+        "submitted": [
+            'un',
+            'deux',
+            'trois',
+        ]
+    }

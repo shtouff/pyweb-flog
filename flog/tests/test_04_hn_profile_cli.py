@@ -23,15 +23,29 @@
        use a common function (hackernews.profile_stats(username, use_html)) that both the cli
        function and view function can use.
 """
-import pytest
+from unittest.mock import patch
 
 
 class Tests:
-    @pytest.mark.skip(reason='expected to fail until command is created')
-    def test_cli_hn_profile(self, cli):
+    # @pytest.mark.skip(reason='expected to fail until command is created')
+    @patch('flog.libs.hackernews.fetch_profile')
+    def test_cli_hn_profile(self, mock, cli, profile):
+        mock.return_value = profile
         # Hint: you will need to do some mocking
         result = cli.invoke('hn-profile', 'rsyring')
+        assert mock.called
         assert result.output == 'HackerNews user rsyring has 3 submissions and 123 karma.\n'
 
         result = cli.invoke('hn-profile', 'foo')
+        assert mock.call_count == 2
         assert result.output == 'HackerNews user foo has 3 submissions and 123 karma.\n'
+
+    @patch('flog.libs.hackernews.fetch_profile')
+    def test_bad_username(self, mock, cli):
+        mock.return_value = None
+        result = cli.invoke('hn-profile', 'rsyrin')
+
+        assert mock.called
+        assert result.output == 'HackerNews user rsyrin not found.\n'
+
+

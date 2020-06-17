@@ -1,9 +1,6 @@
 from flask import Blueprint, request, render_template
 
-from flog.libs.hackernews import hn_process_profile, hn_fetch_profile
-
-__all__ = [
-]
+from flog.libs.hackernews import profile_stats
 
 ident = 'hn-profile'
 
@@ -15,11 +12,4 @@ def hn_profile():
     if request.method == 'GET':
         return render_template('hn-profile.html')
 
-    username = request.form['username']
-    profile = hn_fetch_profile(username)
-    subcount, karma = hn_process_profile(profile)
-
-    return f'HackerNews user {username} has {subcount} submissions and' \
-        f' {karma} karma.'
-
-
+    return profile_stats(request.form['username'], True)

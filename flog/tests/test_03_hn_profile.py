@@ -30,32 +30,13 @@
 """
 from unittest.mock import patch
 
-import pytest
 import responses
-from webtest import TestApp
 
-from flog.libs.hackernews import hn_process_profile, hn_fetch_profile
-
-
-@pytest.fixture()
-def profile():
-    return {
-        "karma": 42,
-        "submitted": [
-            'un',
-            'deux',
-            'trois',
-        ]
-    }
-
-
-@pytest.fixture()
-def wt(app):
-    return TestApp(app)
+from flog.libs.hackernews import process_profile, fetch_profile
 
 
 class Tests:
-    @patch('flog.views.hn_profile.hn_fetch_profile')
+    @patch('flog.libs.hackernews.fetch_profile')
     def test_form(self, mock, wt, profile):
         mock.return_value = profile
 
@@ -68,7 +49,7 @@ class Tests:
 
         assert mock.called
         assert resp.status_code == 200
-        assert b'HackerNews user rsyring has 3 submissions and 42 karma.' in resp.body
+        assert b'HackerNews user <strong>rsyring</strong> has 3 submissions and 123 karma.' in resp.body
 
     @responses.activate
     def test_hn_fetch_profile(self, profile):
@@ -79,11 +60,17 @@ class Tests:
             json=profile, status=200
         )
 
-        fetched_profile = hn_fetch_profile(username)
+        fetched_profile = fetch_profile(username)
         assert "karma" in fetched_profile
         assert "submitted" in fetched_profile
 
     def test_hn_process_profile(self, profile):
-        subcount, karma = hn_process_profile(profile)
+        subcount, karma = process_profile(profile)
         assert subcount == 3
-        assert karma == 42
+        assert karma == 123
+
+    def test_bad_user(self, web):
+        resp = web.post('/hn-profile', data={'username': 'rsyrin'})
+
+        assert resp.status_code == 200
+        assert b'HackerNews user rsyrin not found.' in resp.data
