@@ -32,11 +32,12 @@ from unittest.mock import patch
 
 import pytest
 import responses
+from webtest import TestApp
 
 from flog.libs.hackernews import hn_process_profile, hn_fetch_profile
 
 
-@pytest.fixture
+@pytest.fixture()
 def profile():
     return {
         "karma": 42,
@@ -48,18 +49,26 @@ def profile():
     }
 
 
-class Tests:
-    def test_form(self, web):
-        resp = web.get('/hn-profile')
-        assert resp.status_code == 200
-        assert b'Please enter a Hacker News username:' in resp.data
+@pytest.fixture()
+def wt(app):
+    return TestApp(app)
 
+
+class Tests:
     @patch('flog.views.hn_profile.hn_fetch_profile')
-    def test_hn_post(self, mock, web, profile):
+    def test_form(self, mock, wt, profile):
         mock.return_value = profile
-        resp = web.post('/hn-profile', data={'username': 'rsyring'})
+
+        resp = wt.get('/hn-profile')
         assert resp.status_code == 200
-        assert b'HackerNews user rsyring has 3 submissions and 42 karma.' in resp.data
+        assert b'Please enter a Hacker News username:' in resp.body
+
+        resp.form['username'] = 'rsyring'
+        resp = resp.form.submit()
+
+        assert mock.called
+        assert resp.status_code == 200
+        assert b'HackerNews user rsyring has 3 submissions and 42 karma.' in resp.body
 
     @responses.activate
     def test_hn_fetch_profile(self, profile):
@@ -78,7 +87,3 @@ class Tests:
         subcount, karma = hn_process_profile(profile)
         assert subcount == 3
         assert karma == 42
-
-
-    def test_w(self):
-        app = TestApp()

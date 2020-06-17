@@ -2,6 +2,9 @@ from flask import Blueprint, request, render_template
 
 from flog.libs.hackernews import hn_process_profile, hn_fetch_profile
 
+__all__ = [
+]
+
 ident = 'hn-profile'
 
 bp = Blueprint(ident, __name__)
